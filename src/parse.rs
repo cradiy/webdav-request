@@ -3,7 +3,6 @@ use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
-
 #[derive(Deserialize, Debug, Serialize)]
 pub struct Multistatus {
     #[serde(rename = "response", default)]
@@ -55,8 +54,25 @@ pub struct Prop {
     pub last_modified: String,
     #[serde(rename = "getcontentlength", default)]
     pub content_length: u64,
-    #[serde(alias = "iscollection")]
+    #[serde(alias = "iscollection", default)]
     pub collection: bool,
+    #[serde(rename = "resourcetype", default)]
+    pub resource_type: Option<ResourceType>,
+}
+impl Prop {
+    pub fn is_collection(&self) -> bool {
+        self.collection
+            || self
+                .resource_type
+                .as_ref()
+                .is_some_and(|ty| ty.collection.is_some())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ResourceType {
+    #[serde(default)]
+    collection: Option<String>,
 }
 
 #[derive(Default, Debug)]
@@ -77,7 +93,7 @@ impl From<Multistatus> for FileTree {
             filename: header_node.propstat.prop.display_name,
             children: iter
                 .map(|node| FileNode {
-                    is_dir: node.propstat.collection,
+                    is_dir: node.propstat.is_collection(),
                     href: percent_encoding::percent_decode_str(&node.href)
                         .decode_utf8()
                         .map(|s| s.to_string())
@@ -104,4 +120,3 @@ pub struct FileNode {
     pub len: u64,
     pub content_type: Option<String>,
 }
-
