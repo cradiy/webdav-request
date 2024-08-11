@@ -3,7 +3,7 @@ name = "webdav-request"
 version = "0.1.12"
 edition = "2021"
 license = "MIT"
-description = "lightly webdav client library"
+description = "a lightweight webdav client library"
 repository = "https://github.com/Pesju13/webdav-request"
 keywords = ["webdav"]
 
