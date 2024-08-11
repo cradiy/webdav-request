@@ -59,6 +59,9 @@ pub struct Prop {
     #[serde(rename = "resourcetype", default)]
     pub resource_type: Option<ResourceType>,
 }
+
+
+
 impl Prop {
     pub fn is_collection(&self) -> bool {
         self.collection
@@ -101,11 +104,7 @@ impl From<Multistatus> for FileTree {
                     filename: node.propstat.prop.display_name,
                     last_modified: node.propstat.prop.last_modified,
                     len: node.propstat.prop.content_length,
-                    content_type: if !node.propstat.prop.collection {
-                        Some(node.propstat.prop.content_type)
-                    } else {
-                        None
-                    },
+                    content_type: node.propstat.prop.content_type,
                 })
                 .collect(),
         }
@@ -118,5 +117,5 @@ pub struct FileNode {
     pub filename: String,
     pub last_modified: String,
     pub len: u64,
-    pub content_type: Option<String>,
+    pub content_type: String
 }

@@ -1,13 +1,14 @@
 use reqwest::{
-    header::{self, HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE}, Body, Response
+    header::{self, HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE},
+    Body, RequestBuilder, Response,
 };
 
 use crate::{
     parse::{FileTree, Multistatus},
-    webdav_method::PROPFIND, Error, ALL_DROP,
+    read::LazyResponseReader,
+    webdav_method::PROPFIND,
+    Error, ALL_DROP,
 };
-
-pub struct Method;
 
 pub struct WebDAVRequestBuilder<'w> {
     client: &'w WebDAVClient,
@@ -26,7 +27,7 @@ impl<'a> WebDAVRequestBuilder<'a> {
             headers: HeaderMap::new(),
             url: String::new(),
             method: String::new(),
-            body: None
+            body: None,
         }
     }
     pub fn basic_auth(mut self, username: &str, password: &str) -> Self {
@@ -46,6 +47,10 @@ impl<'a> WebDAVRequestBuilder<'a> {
     pub fn put(self, url: &str) -> Self {
         self.request(url, "PUT")
     }
+    #[inline(always)]
+    pub fn delete(self, url: &str) -> Self {
+        self.request(url, "DELETE")
+    }
 
     pub fn header(mut self, name: HeaderName, value: HeaderValue) -> Self {
         self.headers.insert(name, value);
@@ -62,11 +67,28 @@ impl<'a> WebDAVRequestBuilder<'a> {
             HeaderValue::from_bytes(format!("bytes={start}-{end}").as_bytes()).unwrap(),
         )
     }
+    #[inline(always)]
+    pub fn move_to(self, from: &str, to: &str) -> Self {
+        self.header(
+            HeaderName::from_static("destination"),
+            HeaderValue::from_str(to).expect("error path"),
+        )
+        .request(from, "MOVE")
+    }
     pub fn body(mut self, body: impl Into<Body>) -> Self {
         self.body = Some(body.into());
         self
     }
-    pub fn send(mut self) -> impl std::future::Future<Output = Result<Response, reqwest::Error>> {
+    /// Establishes a request and does nothing until sent by a call 
+    /// to [`poll_read`][tokio::io::AsyncRead::poll_read]
+    pub fn into_lazy_reader(self) -> LazyResponseReader {
+        LazyResponseReader {
+            request: Some(self.build()),
+            reader: None,
+            buf: None,
+        }
+    }
+    pub fn build(mut self) -> RequestBuilder {
         let builder = self
             .client
             .inner
@@ -89,7 +111,9 @@ impl<'a> WebDAVRequestBuilder<'a> {
         } else {
             builder.basic_auth(&self.client.username, Some(&self.client.password))
         }
-        .send()
+    }
+    pub fn send(self) -> impl std::future::Future<Output = Result<Response, reqwest::Error>> {
+        self.build().send()
     }
 }
 #[derive(Clone, Default)]
@@ -136,7 +160,7 @@ impl WebDAVClient {
             .await
     }
     /// List directory
-    /// 
+    ///
     /// ## Warning
     /// Not compatible with all situations, conversion may fail.
     pub async fn list_dir<S: AsRef<str>>(&self, url: S) -> crate::Result<FileTree> {
