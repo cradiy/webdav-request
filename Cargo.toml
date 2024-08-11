@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 description = "a lightweight webdav client library"
 repository = "https://github.com/Pesju13/webdav-request"
-keywords = ["webdav"]
+keywords = ["webdav", "request", "rusttls"]
 
 
 [dependencies]
