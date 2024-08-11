@@ -3,6 +3,7 @@ mod error;
 pub mod parse;
 pub mod read;
 pub use reqwest;
+pub use client::WebDAVClient;
 pub const ALL_DROP: &str = r#"
 <?xml version="1.0"?>
 <d:propfind xmlns:d="DAV:">
