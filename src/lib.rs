@@ -1,18 +1,12 @@
+pub mod method;
 pub mod client;
-mod error;
-pub mod parse;
-pub mod read;
-pub use reqwest;
-pub use client::WebDAVClient;
-pub const ALL_DROP: &str = r#"
-<?xml version="1.0"?>
-<d:propfind xmlns:d="DAV:">
-<d:allprop/>
-</d:propfind>
-"#;
-pub use error::*;
-pub mod webdav_method {
-    use std::sync::LazyLock;
-    pub static PROPFIND: LazyLock<reqwest::Method> =
-        LazyLock::new(|| reqwest::Method::from_bytes(b"PROPFIND").unwrap());
-}
+mod url;
+pub mod error;
+pub mod reader;
+pub mod res;
+pub use client::{WebDAVClient, Auth, Range};
+pub use reqwest::header;
+pub use reqwest::{Body, Request, RequestBuilder, Response, StatusCode, Url};
+pub use method::Method;
+
+pub use quick_xml::DeError;

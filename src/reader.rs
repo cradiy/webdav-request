@@ -1,15 +1,30 @@
-use reqwest::{RequestBuilder, Response};
+use crate::{RequestBuilder, Response};
 use std::{
     future::Future,
     io,
     pin::{pin, Pin},
     task::Poll,
 };
-
 pub struct LazyResponseReader {
-    pub(crate) request: Option<RequestBuilder>,
-    pub(crate) buf: Option<Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>>,
-    pub(crate) reader: Option<ResponseReader>,
+    request: Option<RequestBuilder>,
+    buf: Option<Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>>,
+    reader: Option<ResponseReader>,
+}
+
+impl From<RequestBuilder> for LazyResponseReader {
+    fn from(value: RequestBuilder) -> Self {
+        Self::new(value)
+    }
+}
+impl From<Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>> for LazyResponseReader {
+    fn from(value: Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>) -> Self {
+        Self { request: None, buf: Some(value), reader: None }
+    }
+}
+impl LazyResponseReader {
+    pub fn new(builder: RequestBuilder) -> Self {
+        Self { request: Some(builder), buf: None, reader: None }
+    }
 }
 impl Unpin for LazyResponseReader {}
 impl tokio::io::AsyncRead for LazyResponseReader {
@@ -33,7 +48,7 @@ impl tokio::io::AsyncRead for LazyResponseReader {
                             )));
                         }
                         this.buf = None;
-                        this.reader = Some(ResponseReader::new(Some(response)))
+                        this.reader = Some(ResponseReader::new(response))
                     }
                     Err(e) => {
                         return Poll::Ready(Err(io::Error::new(
@@ -66,11 +81,15 @@ impl std::fmt::Debug for ResponseReader {
         }
     }
 }
-
+impl From<Response> for ResponseReader {
+    fn from(value: Response) -> Self {
+        Self::new(value)
+    }
+}
 impl ResponseReader {
-    pub fn new(inner: Option<Response>) -> ResponseReader {
+    pub fn new(response: Response) -> ResponseReader {
         Self {
-            inner,
+            inner: Some(response),
             ..Default::default()
         }
     }
