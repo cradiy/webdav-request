@@ -1,5 +1,5 @@
 use serde::Deserialize;
-
+use super::privilege::CurrentUserPrivilegeSet;
 
 #[derive(Deserialize, Debug)]
 pub struct MultiStatus {
@@ -8,13 +8,12 @@ pub struct MultiStatus {
 }
 
 impl MultiStatus {
-    #[allow(clippy::should_implement_trait)]
-    pub fn from_str(s: &str) -> Result<Self, quick_xml::DeError> {
+    pub fn parse(s: &str) -> Result<Self, quick_xml::DeError> {
         quick_xml::de::from_str(s)
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct DResponse {
     #[serde(rename = "href")]
     pub href: String,
@@ -22,13 +21,19 @@ pub struct DResponse {
     pub prop_stat: PropStat,
 }
 
-#[derive(Debug, Deserialize, Default)]
+impl DResponse {
+    pub fn into_prop(self) -> Prop {
+        self.prop_stat.prop
+    }
+}
+
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct PropStat {
     pub prop: Prop,
     pub status: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct Prop {
     #[serde(rename = "displayname")]
     pub display_name: String,
@@ -42,6 +47,8 @@ pub struct Prop {
     pub collection: bool,
     #[serde(rename = "resourcetype", default)]
     pub resource_type: Option<ResourceType>,
+    #[serde(rename = "current-user-privilege-set", default)]
+    pub current_user_privilege_set: Option<CurrentUserPrivilegeSet>
 }
 
 impl Prop {
@@ -54,7 +61,7 @@ impl Prop {
     }
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct ResourceType {
     #[serde(default)]
     collection: Option<String>,

@@ -5,9 +5,10 @@ use std::{
     pin::{pin, Pin},
     task::Poll,
 };
+type ResponseStream = Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>;
 pub struct LazyResponseReader {
     request: Option<RequestBuilder>,
-    buf: Option<Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>>,
+    buf: Option<ResponseStream>,
     reader: Option<ResponseReader>,
 }
 
@@ -16,14 +17,22 @@ impl From<RequestBuilder> for LazyResponseReader {
         Self::new(value)
     }
 }
-impl From<Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>> for LazyResponseReader {
-    fn from(value: Box<dyn Unpin + Future<Output = reqwest::Result<Response>>>) -> Self {
-        Self { request: None, buf: Some(value), reader: None }
+impl From<ResponseStream> for LazyResponseReader {
+    fn from(value: ResponseStream) -> Self {
+        Self {
+            request: None,
+            buf: Some(value),
+            reader: None,
+        }
     }
 }
 impl LazyResponseReader {
     pub fn new(builder: RequestBuilder) -> Self {
-        Self { request: Some(builder), buf: None, reader: None }
+        Self {
+            request: Some(builder),
+            buf: None,
+            reader: None,
+        }
     }
 }
 impl Unpin for LazyResponseReader {}

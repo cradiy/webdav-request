@@ -1,4 +1,4 @@
-use super::multistatus::MultiStatus;
+use super::{multistatus::MultiStatus, privilege::Privilege};
 
 #[derive(Default, Debug)]
 pub struct Collection {
@@ -24,19 +24,24 @@ impl From<MultiStatus> for Collection {
             href: collection.href,
             display_name: collection.prop_stat.prop.display_name,
             children: iter
-                .map(|node| Resource {
-                    is_collection: node.prop_stat.prop.is_collection(),
-                    #[cfg(feature = "decode_url")]
-                    href: percent_encoding::percent_decode_str(&node.href)
-                        .decode_utf8()
-                        .map(|s| s.to_string())
-                        .unwrap_or(node.href),
-                    #[cfg(not(feature = "decode_url"))]
-                    href: node.href,
-                    display_name: node.prop_stat.prop.display_name,
-                    last_modified: node.prop_stat.prop.last_modified,
-                    len: node.prop_stat.prop.content_length,
-                    content_type: node.prop_stat.prop.content_type,
+                .map(|node| {
+                    let href = node.href;
+                    let prop = node.prop_stat.prop;
+                    Resource {
+                        is_collection: prop.is_collection(),
+                        #[cfg(feature = "decode_url")]
+                        href: percent_encoding::percent_decode_str(&href)
+                            .decode_utf8()
+                            .map(|s| s.to_string())
+                            .unwrap_or(href),
+                        #[cfg(not(feature = "decode_url"))]
+                        href,
+                        display_name: prop.display_name,
+                        last_modified: prop.last_modified,
+                        len: prop.content_length,
+                        content_type: prop.content_type,
+                        privilege: prop.current_user_privilege_set.unwrap_or_default().privilege(),
+                    }
                 })
                 .collect(),
         }
@@ -50,4 +55,5 @@ pub struct Resource {
     pub last_modified: String,
     pub len: u64,
     pub content_type: String,
+    pub privilege: Privilege,
 }

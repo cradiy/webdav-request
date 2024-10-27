@@ -1,31 +1,21 @@
-use crate::url::WebDavURL;
 
-#[derive(Debug, Clone)]
-pub struct Range {
-    pub start: usize,
-    pub end: usize,
-}
-
-#[derive(Debug, Clone)]
-pub struct Auth {
-    pub username: String,
-    pub password: String,
-}
-
-impl Auth {
-    pub fn new(username: &str, password: &str) -> Self {
-        Self {
-            username: username.to_owned(),
-            password: password.to_owned(),
-        }
-    }
-}
+type Username = String;
+type Password = String;
 #[derive(Clone, Default)]
 pub struct InnerClient {
-    pub(crate) base_url: Option<WebDavURL>,
-    pub(crate) auth: Option<Auth>,
+    pub(crate) auth: Option<(Username, Password)>,
     pub(crate) inner: reqwest::Client,
 }
+
+impl InnerClient {
+    pub fn new(username: &str, password: &str) -> Result<Self, reqwest::Error>  {
+        Ok(Self {
+            auth: Some((username.to_owned(), password.to_owned())),
+            inner: reqwest::Client::builder().build()?,
+        })
+    }
+}
+
 unsafe impl Send for InnerClient {
     
 }
