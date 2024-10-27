@@ -7,41 +7,27 @@ pub enum Error {
     RequestError(reqwest::Error),
     DeError(quick_xml::DeError),
     ResponseError(StatusCode),
-    Utf8Error(std::str::Utf8Error)
+    Utf8Error(std::str::Utf8Error),
+    UrlError(url::ParseError)
 }
 
 impl Error {
     pub fn is_std_err(&self) -> bool {
-        match self {
-            Self::StdError(_) => true,
-            _ => false
-        }
+        matches!(self, Self::StdError(_))
     }
 
     pub fn is_request_err(&self) -> bool {
-        match self {
-            Self::RequestError(_) => true,
-            _ => false
-        }
+        matches!(self, Self::RequestError(_))
     }
     pub fn is_de_err(&self) -> bool {
-        match self {
-            Self::DeError(_) => true,
-            _ => false
-        }
+        matches!(self, Self::DeError(_))
     }
     pub fn is_response_err(&self) -> bool {
-        match self {
-            Self::ResponseError(_) => true,
-            _ => false
-        }
+        matches!(self, Self::ResponseError(_))
     }
 
     pub fn is_invalid_utf8_err(&self) -> bool {
-        match self {
-            Self::Utf8Error(_) => true,
-            _ => false
-        }
+        matches!(self, Self::Utf8Error(_))
     }
 }
 
@@ -66,6 +52,12 @@ impl From<std::str::Utf8Error> for Error {
     }
 }
 
+impl From<url::ParseError> for Error {
+    fn from(value: url::ParseError) -> Self {
+        Self::UrlError(value)
+    }
+}
+
 impl std::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -74,6 +66,7 @@ impl std::fmt::Debug for Error {
             Self::DeError(arg0) => arg0.fmt(f),
             Self::ResponseError(arg) => arg.fmt(f),
             Error::Utf8Error(arg) => arg.fmt(f),
+            Error::UrlError(parse_error) => parse_error.fmt(f),
         }
     }
 }
@@ -85,7 +78,8 @@ impl std::fmt::Display for Error {
             Self::RequestError(arg0) =>arg0.fmt(f),
             Self::DeError(arg0) => arg0.fmt(f),
             Self::ResponseError(arg) => arg.fmt(f),
-            Self::Utf8Error(arg) => arg.fmt(f)
+            Self::Utf8Error(arg) => arg.fmt(f),
+            Self::UrlError(arg) => arg.fmt(f)
         }
     }
 }
