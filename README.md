@@ -14,7 +14,7 @@ This is a library under development and is not stable.
 # Getting Started
 
 ```rust 
-use webdav_request::{Auth, WebDAVClient};
+use webdav_request::WebDAVClient;
 
 const WEBDAV_URL: &str = "https://your.webdav.com";
 const USERNAME: &str = "name";
@@ -22,9 +22,8 @@ const PASSWORD: &str = "password";
 
 #[tokio::main]
 async fn main() -> webdav_request::error::Result<()> {
-    let auth = Auth::new(USERNAME, PASSWORD);
-    let client = WebDAVClient::new(Some(auth), Some(WEBDAV_URL))?;
-    let response = client.get("/path/file").await?;
+    let client = WebDAVClient::new(USERNAME, PASSWORD)?;
+    let response = client.get(format!("{}/path/file", WEBDAV_URL)).await?;
     if response.status().is_success() {
         let _bytes = response.bytes().await?;
         // TODO
