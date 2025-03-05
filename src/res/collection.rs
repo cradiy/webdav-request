@@ -40,7 +40,10 @@ impl From<MultiStatus> for Collection {
                         last_modified: prop.last_modified,
                         len: prop.content_length,
                         content_type: prop.content_type,
-                        privilege: prop.current_user_privilege_set.unwrap_or_default().privilege(),
+                        privilege: prop
+                            .current_user_privilege_set
+                            .unwrap_or_default()
+                            .privilege(),
                     }
                 })
                 .collect(),

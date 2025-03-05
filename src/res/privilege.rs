@@ -59,6 +59,24 @@ pub struct Privilege {
     all: bool,
 }
 
+impl Privilege {
+    pub fn read(&self) -> bool {
+        self.read
+    }
+    pub fn write(&self) -> bool {
+        self.write
+    }
+    pub fn read_acl(&self) -> bool {
+        self.read_acl
+    }
+    pub fn write_acl(&self) -> bool {
+        self.write_acl
+    }
+    pub fn all(&self) -> bool {
+        self.all
+    }
+}
+
 impl From<Vec<PrivilegeType>> for Privilege {
     fn from(value: Vec<PrivilegeType>) -> Self {
         let mut read = false;

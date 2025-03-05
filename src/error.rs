@@ -8,7 +8,7 @@ pub enum Error {
     DeError(quick_xml::DeError),
     ResponseError(StatusCode),
     Utf8Error(std::str::Utf8Error),
-    UrlError(url::ParseError)
+    UrlError(url::ParseError),
 }
 
 impl Error {
@@ -62,7 +62,7 @@ impl std::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::StdError(arg0) => arg0.fmt(f),
-            Self::RequestError(arg0) =>arg0.fmt(f),
+            Self::RequestError(arg0) => arg0.fmt(f),
             Self::DeError(arg0) => arg0.fmt(f),
             Self::ResponseError(arg) => arg.fmt(f),
             Error::Utf8Error(arg) => arg.fmt(f),
@@ -75,14 +75,12 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::StdError(arg0) => arg0.fmt(f),
-            Self::RequestError(arg0) =>arg0.fmt(f),
+            Self::RequestError(arg0) => arg0.fmt(f),
             Self::DeError(arg0) => arg0.fmt(f),
             Self::ResponseError(arg) => arg.fmt(f),
             Self::Utf8Error(arg) => arg.fmt(f),
-            Self::UrlError(arg) => arg.fmt(f)
+            Self::UrlError(arg) => arg.fmt(f),
         }
     }
 }
-impl std::error::Error for Error {
-    
-}
+impl std::error::Error for Error {}
