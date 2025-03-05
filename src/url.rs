@@ -79,7 +79,7 @@ impl WebDavUrl {
         }
         url
     }
-
+    #[allow(dead_code)]
     pub(crate) fn smart_merge(&self, path: &str) -> String {
         if path.starts_with("/") {
             if path.starts_with(self.path()) {
