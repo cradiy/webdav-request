@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use super::privilege::CurrentUserPrivilegeSet;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct MultiStatus {
@@ -48,7 +48,7 @@ pub struct Prop {
     #[serde(rename = "resourcetype", default)]
     pub resource_type: Option<ResourceType>,
     #[serde(rename = "current-user-privilege-set", default)]
-    pub current_user_privilege_set: Option<CurrentUserPrivilegeSet>
+    pub current_user_privilege_set: Option<CurrentUserPrivilegeSet>,
 }
 
 impl Prop {

@@ -41,7 +41,7 @@ macro_rules! into_url {
     ($url:expr) => {
         match $url.into_url() {
             Ok(url) => url,
-            Err(e) => panic!("{e}")
+            Err(e) => panic!("{e}"),
         }
     };
 }
@@ -76,15 +76,14 @@ impl WebDAVClient {
         }
     }
     #[inline(always)]
-    pub async fn all_propfind(
-        &self,
-        url: impl IntoUrl,
-    ) -> Result<Response, crate::error::Error> {
+    pub async fn all_propfind(&self, url: impl IntoUrl) -> Result<Response, crate::error::Error> {
         self.request(Method::PROPFIND, url.into_url()?)
             .header(CONTENT_TYPE, HeaderValue::from_static("application/xml"))
             .header(header_name!("depth"), header_value!("1"))
             .body(ALL_DROP)
-            .send().await.map_err(Into::into)
+            .send()
+            .await
+            .map_err(Into::into)
     }
 }
 
